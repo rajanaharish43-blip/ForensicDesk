@@ -13,6 +13,7 @@ interface CaseState {
   updateEvidenceNotes: (caseId: string, evidenceId: string, notes: string) => void;
   deleteEvidence: (caseId: string, evidenceId: string) => void;
   updateArtifact: (caseId: string, evidenceId: string, artifactId: string, updates: Partial<Artifact>) => void;
+  updateBoard: (caseId: string, nodes: any[], edges: any[]) => void;
 }
 
 // Create a custom storage wrapper for localforage to work with Zustand persist
@@ -108,6 +109,9 @@ export const useCaseStore = create<CaseState>()(
           }
           return c;
         })
+      })),
+      updateBoard: (caseId, nodes, edges) => set((state) => ({
+        cases: state.cases.map(c => c.id === caseId ? { ...c, board: { nodes, edges } } : c)
       })),
     }),
     {

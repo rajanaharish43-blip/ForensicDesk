@@ -8,6 +8,16 @@ export interface Case {
   notes: string;
   findings: Finding[];
   evidence: Evidence[];
+  board?: {
+    nodes: any[];
+    edges: any[];
+  };
+}
+
+export interface BoardNodeData {
+  label: string;
+  type: 'IP' | 'User' | 'Process' | 'File' | 'Domain' | 'Event';
+  notes?: string;
 }
 
 export interface Finding {

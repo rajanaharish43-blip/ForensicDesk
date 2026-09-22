@@ -12,12 +12,8 @@ export const Timeline: React.FC = () => {
   const [investigationMode, setInvestigationMode] = useState(false);
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string>('all');
 
-  if (!currentCase) {
-    return <Navigate to="/" replace />;
-  }
-
   // Build the complete timeline from all evidence sources
-  const fullTimeline = useMemo(() => buildTimeline(currentCase.evidence), [currentCase.evidence]);
+  const fullTimeline = useMemo(() => currentCase ? buildTimeline(currentCase.evidence) : [], [currentCase]);
 
   // Apply filters
   const filteredTimeline = useMemo(() => {
@@ -27,6 +23,10 @@ export const Timeline: React.FC = () => {
       return true;
     });
   }, [fullTimeline, investigationMode, selectedEvidenceId]);
+
+  if (!currentCase) {
+    return <Navigate to="/" replace />;
+  }
 
   const toggleRelevance = (evidenceId: string, artifactId: string, current: boolean) => {
     updateArtifact(currentCase.id, evidenceId, artifactId, { isRelevant: !current });
@@ -65,6 +65,7 @@ export const Timeline: React.FC = () => {
           
           <button
             onClick={() => setInvestigationMode(!investigationMode)}
+            title="Show only events marked as relevant by the investigator"
             className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium transition-colors ${
               investigationMode 
                 ? 'bg-blue-500/20 text-blue-400' 
@@ -72,7 +73,7 @@ export const Timeline: React.FC = () => {
             }`}
           >
             {investigationMode ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-            Investigation Mode (Relevant Only)
+            Investigation Mode (Marked Relevant)
           </button>
         </div>
       </div>
@@ -110,6 +111,7 @@ export const Timeline: React.FC = () => {
                     </div>
                     
                     <button 
+                      title="Mark as relevant to the investigation"
                       onClick={() => toggleRelevance(event.evidenceId, event.id, event.isRelevant)}
                       className="p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
@@ -122,18 +124,21 @@ export const Timeline: React.FC = () => {
                   </div>
                   
                   <div className="mt-3 text-sm text-neutral-300">
-                    <pre className="whitespace-pre-wrap font-sans bg-neutral-900/50 p-3 rounded border border-neutral-800">
-                      {/* Render the first 3 keys of data to avoid massive blobs, or custom formatting based on type */}
+                    <div className="whitespace-pre-wrap font-sans bg-neutral-900/50 p-3 rounded border border-neutral-800 grid grid-cols-2 gap-x-4 gap-y-2">
+                      {/* Render important keys of data to avoid massive blobs */}
                       {Object.entries(event.data)
-                        .filter(([key]) => !['timestamp', 'time', 'type', 'event'].includes(key.toLowerCase()))
-                        .slice(0, 5)
+                        .filter(([key, val]) => {
+                          const k = key.toLowerCase();
+                          return !['timestamp', 'time', 'date', 'type', 'event'].includes(k) && val !== null && val !== '';
+                        })
+                        .slice(0, 8)
                         .map(([key, val]) => (
-                          <div key={key} className="mb-1">
+                          <div key={key} className="truncate" title={String(val)}>
                             <span className="text-neutral-500 capitalize">{key}: </span>
-                            <span>{String(val)}</span>
+                            <span className="text-neutral-200">{String(val)}</span>
                           </div>
                         ))}
-                    </pre>
+                    </div>
                   </div>
                 </div>
               </div>

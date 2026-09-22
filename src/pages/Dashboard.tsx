@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
-import { Plus, FolderOpen, Clock } from 'lucide-react';
+import { Plus, FolderOpen, Clock, Download } from 'lucide-react';
+import { compromisedAccountScenario } from '../scenarios/scenario-1';
 
 export const Dashboard: React.FC = () => {
   const { cases, addCase, setActiveCase } = useCaseStore();
@@ -34,13 +35,24 @@ export const Dashboard: React.FC = () => {
           <h1 className="text-3xl font-bold text-white tracking-tight">Active Cases</h1>
           <p className="text-neutral-400 mt-1">Manage and access your forensic investigations.</p>
         </div>
-        <button
-          onClick={() => setShowNewCase(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          New Case
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => {
+              addCase(compromisedAccountScenario as any);
+            }}
+            className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-2 rounded-md font-medium transition-colors shadow-sm"
+          >
+            <Download className="w-4 h-4" />
+            Load Demo Investigation
+          </button>
+          <button
+            onClick={() => setShowNewCase(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            New Case
+          </button>
+        </div>
       </div>
 
       {showNewCase && (
@@ -140,13 +152,21 @@ export const Dashboard: React.FC = () => {
           <div className="col-span-full py-16 flex flex-col items-center justify-center text-center border-2 border-dashed border-neutral-800 rounded-xl">
             <FolderOpen className="w-12 h-12 text-neutral-600 mb-4" />
             <h3 className="text-lg font-medium text-neutral-300">No cases found</h3>
-            <p className="text-neutral-500 mt-1 mb-4">Get started by creating a new forensic case.</p>
-            <button
-              onClick={() => setShowNewCase(true)}
-              className="text-blue-400 hover:text-blue-300 font-medium text-sm"
-            >
-              + Create your first case
-            </button>
+            <p className="text-neutral-500 mt-1 mb-4">Get started by creating a new forensic case or load a demo.</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => addCase(compromisedAccountScenario as any)}
+                className="text-neutral-400 hover:text-white font-medium text-sm bg-neutral-800 px-4 py-2 rounded"
+              >
+                Load Demo Investigation
+              </button>
+              <button
+                onClick={() => setShowNewCase(true)}
+                className="text-blue-400 hover:text-blue-300 font-medium text-sm bg-blue-900/30 px-4 py-2 rounded"
+              >
+                + Create your first case
+              </button>
+            </div>
           </div>
         )}
       </div>

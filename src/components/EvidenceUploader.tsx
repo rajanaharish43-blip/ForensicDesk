@@ -14,7 +14,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const processFile = async (file: File) => {
+  const processFile = useCallback(async (file: File) => {
     setIsProcessing(true);
     try {
       const hashes = await calculateFileHash(file);
@@ -22,14 +22,32 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
       let parsedArtifacts: Artifact[] = [];
       const extension = file.name.split('.').pop()?.toLowerCase() || '';
 
+      // Try to find common timestamp fields
+      const getTimestamp = (row: any) => {
+        const timeKeys = ['timestamp', 'Time', 'time', 'date', 'Date', '@timestamp'];
+        for (const key of timeKeys) {
+          if (row[key]) return row[key];
+        }
+        return undefined;
+      };
+
+      // Try to find common event type fields
+      const getType = (row: any) => {
+        const typeKeys = ['type', 'Type', 'Event', 'event', 'action', 'Action'];
+        for (const key of typeKeys) {
+          if (row[key]) return row[key];
+        }
+        return 'Log';
+      };
+
       if (extension === 'csv') {
         const text = await file.text();
         const results = Papa.parse(text, { header: true, skipEmptyLines: true });
         parsedArtifacts = results.data.map((row: any) => ({
           id: '', // Will be assigned by store
           evidenceId: '',
-          timestamp: row.timestamp || row.Time || row.time || undefined,
-          type: row.type || row.Event || row.event || 'Log',
+          timestamp: getTimestamp(row),
+          type: getType(row),
           data: row,
           isRelevant: false,
           notes: ''
@@ -41,8 +59,8 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
         parsedArtifacts = dataArray.map((row: any) => ({
           id: '',
           evidenceId: '',
-          timestamp: row.timestamp || row.Time || row.time || undefined,
-          type: row.type || row.Event || row.event || 'Log',
+          timestamp: getTimestamp(row),
+          type: getType(row),
           data: row,
           isRelevant: false,
           notes: ''
@@ -68,7 +86,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [addEvidence, caseId]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -77,7 +95,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
       const file = e.dataTransfer.files[0];
       processFile(file);
     }
-  }, [caseId]);
+  }, [processFile]);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

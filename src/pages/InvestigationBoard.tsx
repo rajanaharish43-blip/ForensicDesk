@@ -33,18 +33,16 @@ export const InvestigationBoard: React.FC = () => {
   const { cases, updateBoard } = useCaseStore();
   const currentCase = cases.find(c => c.id === id);
 
-  if (!currentCase) {
-    return <Navigate to="/" replace />;
-  }
-
-  const [nodes, setNodes] = useState<Node[]>(currentCase.board?.nodes || initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(currentCase.board?.edges || initialEdges);
+  const [nodes, setNodes] = useState<Node[]>(currentCase?.board?.nodes || initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(currentCase?.board?.edges || initialEdges);
   const [showAddMenu, setShowAddMenu] = useState(false);
 
   // Auto-save to store when nodes or edges change
   useEffect(() => {
-    updateBoard(currentCase.id, nodes, edges);
-  }, [nodes, edges, currentCase.id, updateBoard]);
+    if (currentCase) {
+      updateBoard(currentCase.id, nodes, edges);
+    }
+  }, [nodes, edges, currentCase, updateBoard]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -57,9 +55,25 @@ export const InvestigationBoard: React.FC = () => {
   );
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#60a5fa' } }, eds)),
+    (params: Connection) => {
+      const edgeLabel = prompt('Enter relationship (e.g., executed, connected to, downloaded):') || undefined;
+      const newEdge = {
+        ...params,
+        animated: true,
+        style: { stroke: '#60a5fa' },
+        label: edgeLabel,
+        labelStyle: { fill: '#cbd5e1', fontWeight: 500, fontSize: 12 },
+        labelBgStyle: { fill: '#171717' },
+        labelBgPadding: [4, 4]
+      };
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
     []
   );
+
+  if (!currentCase) {
+    return <Navigate to="/" replace />;
+  }
 
   const addNode = (type: BoardNodeData['type']) => {
     const label = prompt(`Enter label for ${type}:`);

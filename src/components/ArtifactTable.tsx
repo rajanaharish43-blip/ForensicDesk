@@ -34,8 +34,24 @@ export const ArtifactTable: React.FC<ArtifactTableProps> = ({ caseId, evidenceId
     return <div className="text-neutral-500 text-sm italic">No artifacts found in this evidence.</div>;
   }
 
-  // Derive columns from the first artifact's data keys (limit to 5 for UI clarity)
-  const columns = Object.keys(artifacts[0].data).slice(0, 5);
+  // Dynamically derive columns from all artifacts to handle varying schemas, limit to 8 for UI clarity
+  const allKeys = new Set<string>();
+  artifacts.forEach(a => {
+    Object.keys(a.data).forEach(key => allKeys.add(key));
+  });
+
+  // Try to prioritize important columns like timestamp, ip, user, event
+  const importantKeys = ['timestamp', 'time', 'date', 'ip', 'source_ip', 'destination_ip', 'user', 'username', 'event', 'action', 'result'];
+  const columnsArray = Array.from(allKeys);
+  const columns = columnsArray
+    .sort((a, b) => {
+      const aImportant = importantKeys.some(k => a.toLowerCase().includes(k));
+      const bImportant = importantKeys.some(k => b.toLowerCase().includes(k));
+      if (aImportant && !bImportant) return -1;
+      if (!aImportant && bImportant) return 1;
+      return 0;
+    })
+    .slice(0, 8);
 
   return (
     <div className="flex flex-col h-full">
@@ -52,6 +68,7 @@ export const ArtifactTable: React.FC<ArtifactTableProps> = ({ caseId, evidenceId
         </div>
         <button
           onClick={() => setFilterRelevant(!filterRelevant)}
+          title="Show only artifacts marked as relevant by the investigator"
           className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
             filterRelevant 
               ? 'bg-blue-500/20 border-blue-500 text-blue-400' 
@@ -59,7 +76,7 @@ export const ArtifactTable: React.FC<ArtifactTableProps> = ({ caseId, evidenceId
           }`}
         >
           <Filter className="w-4 h-4" />
-          Relevant Only
+          Investigator Marked Relevant
         </button>
       </div>
 
@@ -79,7 +96,7 @@ export const ArtifactTable: React.FC<ArtifactTableProps> = ({ caseId, evidenceId
             {filteredArtifacts.map((artifact) => (
               <tr key={artifact.id} className="border-b border-neutral-800 hover:bg-neutral-800/30">
                 <td className="p-3 text-center">
-                  <button onClick={() => toggleRelevance(artifact.id, artifact.isRelevant)}>
+                  <button title="Mark as relevant to the investigation" onClick={() => toggleRelevance(artifact.id, artifact.isRelevant)}>
                     {artifact.isRelevant ? (
                       <BookmarkCheck className="w-4 h-4 text-blue-400" />
                     ) : (

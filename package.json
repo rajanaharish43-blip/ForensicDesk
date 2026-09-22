@@ -12,6 +12,8 @@
   "dependencies": {
     "@xyflow/react": "^12.11.6",
     "clsx": "^2.1.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "localforage": "^1.10.0",
     "lucide-react": "^1.47.0",
     "papaparse": "^5.7.0",

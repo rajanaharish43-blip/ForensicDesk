@@ -30,28 +30,30 @@ export const ArtifactTable: React.FC<ArtifactTableProps> = ({ caseId, evidenceId
     updateArtifact(caseId, evidenceId, artifactId, { isRelevant: !current });
   };
 
+  // Dynamically derive columns from all artifacts to handle varying schemas, limit to 8 for UI clarity
+  const columns = useMemo(() => {
+    const allKeys = new Set<string>();
+    artifacts.forEach(a => {
+      Object.keys(a.data).forEach(key => allKeys.add(key));
+    });
+
+    // Try to prioritize important columns like timestamp, ip, user, event
+    const importantKeys = ['timestamp', 'time', 'date', 'ip', 'source_ip', 'destination_ip', 'user', 'username', 'event', 'action', 'result'];
+    const columnsArray = Array.from(allKeys);
+    return columnsArray
+      .sort((a, b) => {
+        const aImportant = importantKeys.some(k => a.toLowerCase().includes(k));
+        const bImportant = importantKeys.some(k => b.toLowerCase().includes(k));
+        if (aImportant && !bImportant) return -1;
+        if (!aImportant && bImportant) return 1;
+        return 0;
+      })
+      .slice(0, 8);
+  }, [artifacts]);
+
   if (artifacts.length === 0) {
     return <div className="text-neutral-500 text-sm italic">No artifacts found in this evidence.</div>;
   }
-
-  // Dynamically derive columns from all artifacts to handle varying schemas, limit to 8 for UI clarity
-  const allKeys = new Set<string>();
-  artifacts.forEach(a => {
-    Object.keys(a.data).forEach(key => allKeys.add(key));
-  });
-
-  // Try to prioritize important columns like timestamp, ip, user, event
-  const importantKeys = ['timestamp', 'time', 'date', 'ip', 'source_ip', 'destination_ip', 'user', 'username', 'event', 'action', 'result'];
-  const columnsArray = Array.from(allKeys);
-  const columns = columnsArray
-    .sort((a, b) => {
-      const aImportant = importantKeys.some(k => a.toLowerCase().includes(k));
-      const bImportant = importantKeys.some(k => b.toLowerCase().includes(k));
-      if (aImportant && !bImportant) return -1;
-      if (!aImportant && bImportant) return 1;
-      return 0;
-    })
-    .slice(0, 8);
 
   return (
     <div className="flex flex-col h-full">

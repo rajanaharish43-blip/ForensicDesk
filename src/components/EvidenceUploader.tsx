@@ -40,6 +40,30 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
         return 'Log';
       };
 
+      // Sanitize row data to prevent prototype pollution and type mismatches
+      const sanitizeRowData = (row: any): Record<string, string | number | boolean | null> => {
+        if (!row || typeof row !== 'object') {
+          return { value: String(row) };
+        }
+        const sanitized: Record<string, string | number | boolean | null> = {};
+        for (const key in row) {
+          // Prevent prototype pollution
+          if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+            continue;
+          }
+          if (Object.prototype.hasOwnProperty.call(row, key)) {
+            const val = row[key];
+            if (val === null || typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+              sanitized[key] = val;
+            } else {
+              // Convert arrays and objects to strings to prevent UI crashes and maintain type safety
+              sanitized[key] = JSON.stringify(val);
+            }
+          }
+        }
+        return sanitized;
+      };
+
       if (extension === 'csv') {
         const text = await file.text();
         const results = Papa.parse(text, { header: true, skipEmptyLines: true });
@@ -48,7 +72,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
           evidenceId: '',
           timestamp: getTimestamp(row),
           type: getType(row),
-          data: row,
+          data: sanitizeRowData(row),
           isRelevant: false,
           notes: ''
         }));
@@ -61,7 +85,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
           evidenceId: '',
           timestamp: getTimestamp(row),
           type: getType(row),
-          data: row,
+          data: sanitizeRowData(row),
           isRelevant: false,
           notes: ''
         }));

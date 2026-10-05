@@ -1,3 +1,5 @@
+import type { Node, Edge } from '@xyflow/react';
+
 export interface Case {
   id: string;
   name: string;
@@ -9,8 +11,8 @@ export interface Case {
   findings: Finding[];
   evidence: Evidence[];
   board?: {
-    nodes: any[];
-    edges: any[];
+    nodes: Node[];
+    edges: Edge[];
   };
 }
 

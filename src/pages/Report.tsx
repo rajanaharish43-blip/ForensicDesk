@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import { jsPDF } from 'jspdf';
@@ -10,6 +10,11 @@ export const Report: React.FC = () => {
   const { id } = useParams();
   const { cases } = useCaseStore();
   const currentCase = cases.find(c => c.id === id);
+
+  const fullTimeline = useMemo(() => {
+    if (!currentCase) return [];
+    return buildTimeline(currentCase.evidence);
+  }, [currentCase]);
 
   if (!currentCase) {
     return <Navigate to="/" replace />;
@@ -78,11 +83,10 @@ export const Report: React.FC = () => {
             columnStyles: { 1: { cellWidth: 90, fontStyle: 'italic' } }
         });
 
-        yPos = (doc as any).lastAutoTable.finalY + 12;
+        yPos = doc.lastAutoTable.finalY + 12;
     }
 
     // Timeline of Relevant Events
-    const fullTimeline = buildTimeline(currentCase.evidence);
     const relevantEvents = fullTimeline.filter(event => event.isRelevant);
 
     doc.setFontSize(16);
@@ -120,7 +124,7 @@ export const Report: React.FC = () => {
             columnStyles: { 3: { cellWidth: 80 } }
         });
 
-        yPos = (doc as any).lastAutoTable.finalY + 12;
+        yPos = doc.lastAutoTable.finalY + 12;
     }
 
     // Investigation Graph Nodes
@@ -149,7 +153,7 @@ export const Report: React.FC = () => {
             headStyles: { fillColor: [40, 40, 40] }
         });
 
-        yPos = (doc as any).lastAutoTable.finalY + 12;
+        yPos = doc.lastAutoTable.finalY + 12;
     }
 
     // Save PDF
@@ -226,7 +230,7 @@ export const Report: React.FC = () => {
             <div>
                 <h4 className="text-lg font-bold text-white mb-2">3. Investigation Status</h4>
                 <div className="text-sm text-neutral-300 bg-neutral-950 p-4 rounded-lg">
-                    <p>Timeline relevant events: {buildTimeline(currentCase.evidence).filter(e => e.isRelevant).length}</p>
+                    <p>Timeline relevant events: {fullTimeline.filter(e => e.isRelevant).length}</p>
                     <p>Graph nodes mapped: {currentCase.board?.nodes.length || 0}</p>
                 </div>
             </div>

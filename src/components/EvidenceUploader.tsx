@@ -3,6 +3,7 @@ import Papa from 'papaparse';
 import { UploadCloud } from 'lucide-react';
 import { useCaseStore } from '../store/caseStore';
 import { calculateFileHash } from '../engine/hashing';
+import { sanitizeEvidenceData } from '../utils/sanitize';
 import type { Artifact } from '../types';
 
 interface EvidenceUploaderProps {
@@ -26,7 +27,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
       const getTimestamp = (row: any) => {
         const timeKeys = ['timestamp', 'Time', 'time', 'date', 'Date', '@timestamp'];
         for (const key of timeKeys) {
-          if (row[key]) return row[key];
+          if (row[key] !== undefined && row[key] !== null) return String(row[key]);
         }
         return undefined;
       };
@@ -35,7 +36,7 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
       const getType = (row: any) => {
         const typeKeys = ['type', 'Type', 'Event', 'event', 'action', 'Action'];
         for (const key of typeKeys) {
-          if (row[key]) return row[key];
+          if (row[key] !== undefined && row[key] !== null) return String(row[key]);
         }
         return 'Log';
       };
@@ -43,28 +44,34 @@ export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) =>
       if (extension === 'csv') {
         const text = await file.text();
         const results = Papa.parse(text, { header: true, skipEmptyLines: true });
-        parsedArtifacts = results.data.map((row: any) => ({
-          id: '', // Will be assigned by store
-          evidenceId: '',
-          timestamp: getTimestamp(row),
-          type: getType(row),
-          data: row,
-          isRelevant: false,
-          notes: ''
-        }));
+        parsedArtifacts = results.data.map((row: any) => {
+          const sanitizedData = sanitizeEvidenceData(row);
+          return {
+            id: '', // Will be assigned by store
+            evidenceId: '',
+            timestamp: getTimestamp(sanitizedData),
+            type: getType(sanitizedData),
+            data: sanitizedData,
+            isRelevant: false,
+            notes: ''
+          };
+        });
       } else if (extension === 'json') {
         const text = await file.text();
         const results = JSON.parse(text);
         const dataArray = Array.isArray(results) ? results : [results];
-        parsedArtifacts = dataArray.map((row: any) => ({
-          id: '',
-          evidenceId: '',
-          timestamp: getTimestamp(row),
-          type: getType(row),
-          data: row,
-          isRelevant: false,
-          notes: ''
-        }));
+        parsedArtifacts = dataArray.map((row: any) => {
+          const sanitizedData = sanitizeEvidenceData(row);
+          return {
+            id: '',
+            evidenceId: '',
+            timestamp: getTimestamp(sanitizedData),
+            type: getType(sanitizedData),
+            data: sanitizedData,
+            isRelevant: false,
+            notes: ''
+          };
+        });
       } else {
         alert('Only CSV and JSON files are supported for now.');
         setIsProcessing(false);

@@ -83,7 +83,7 @@ export const Report: React.FC = () => {
             columnStyles: { 1: { cellWidth: 90, fontStyle: 'italic' } }
         });
 
-        yPos = (doc as any).lastAutoTable.finalY + 12;
+        yPos = doc.lastAutoTable.finalY + 12;
     }
 
     // Timeline of Relevant Events
@@ -124,7 +124,7 @@ export const Report: React.FC = () => {
             columnStyles: { 3: { cellWidth: 80 } }
         });
 
-        yPos = (doc as any).lastAutoTable.finalY + 12;
+        yPos = doc.lastAutoTable.finalY + 12;
     }
 
     // Investigation Graph Nodes
@@ -153,7 +153,7 @@ export const Report: React.FC = () => {
             headStyles: { fillColor: [40, 40, 40] }
         });
 
-        yPos = (doc as any).lastAutoTable.finalY + 12;
+        yPos = doc.lastAutoTable.finalY + 12;
     }
 
     // Save PDF

@@ -1,5 +1,4 @@
-
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { CaseOverview } from './pages/CaseOverview';
@@ -10,7 +9,7 @@ import { Report } from './pages/Report';
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -22,7 +21,7 @@ function App() {
           <Route path="case/:id/report" element={<Report />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 

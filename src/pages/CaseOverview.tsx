@@ -1,80 +1,15 @@
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Navigate, Link } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
-import { Target, User, Calendar, FileText } from 'lucide-react';
+import { Target, User, Calendar, FileText, ArrowUpRight, Database, Clock3, ClipboardList } from 'lucide-react';
 
 export const CaseOverview: React.FC = () => {
-  const { id } = useParams();
-  const { cases } = useCaseStore();
-  
-  const currentCase = cases.find(c => c.id === id);
-
-  if (!currentCase) {
-    return <Navigate to="/" replace />;
-  }
-
-  return (
-    <div className="max-w-4xl">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-sm font-mono bg-blue-500/10 text-blue-400 px-2 py-1 rounded">
-            {currentCase.id}
-          </span>
-          <span className="text-sm font-medium text-green-400 bg-green-400/10 px-2 py-1 rounded">
-            {currentCase.status}
-          </span>
-        </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight">{currentCase.name}</h1>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-          <div className="flex items-center gap-2 text-neutral-400 mb-2">
-            <User className="w-4 h-4" />
-            <h3 className="text-sm font-medium">Investigator</h3>
-          </div>
-          <p className="text-lg font-medium text-white">{currentCase.investigator}</p>
-        </div>
-        
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-          <div className="flex items-center gap-2 text-neutral-400 mb-2">
-            <Calendar className="w-4 h-4" />
-            <h3 className="text-sm font-medium">Created</h3>
-          </div>
-          <p className="text-lg font-medium text-white">
-            {new Date(currentCase.createdAt).toLocaleDateString()}
-          </p>
-        </div>
-        
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
-          <div className="flex items-center gap-2 text-neutral-400 mb-2">
-            <FileText className="w-4 h-4" />
-            <h3 className="text-sm font-medium">Findings</h3>
-          </div>
-          <p className="text-lg font-medium text-white">{currentCase.findings?.length || 0}</p>
-        </div>
-      </div>
-
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 mb-6">
-        <div className="flex items-center gap-2 text-neutral-200 mb-4 pb-4 border-b border-neutral-800">
-          <Target className="w-5 h-5 text-blue-400" />
-          <h2 className="text-xl font-semibold">Investigation Objective</h2>
-        </div>
-        <p className="text-neutral-400 whitespace-pre-wrap leading-relaxed">
-          {currentCase.objective}
-        </p>
-      </div>
-
-      {currentCase.notes && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-neutral-200 mb-4 pb-4 border-b border-neutral-800">
-            Case Notes
-          </h2>
-          <p className="text-neutral-400 whitespace-pre-wrap leading-relaxed">
-            {currentCase.notes}
-          </p>
-        </div>
-      )}
-    </div>
-  );
+  const { id } = useParams(); const { cases } = useCaseStore(); const currentCase = cases.find(c => c.id === id);
+  if (!currentCase) return <Navigate to="/" replace />;
+  const artifacts = currentCase.evidence.reduce((n, e) => n + e.artifacts.length, 0);
+  const links = [{ label: 'Evidence workspace', to: `/case/${id}/evidence`, icon: Database, value: `${currentCase.evidence.length} sources` }, { label: 'Timeline reconstruction', to: `/case/${id}/timeline`, icon: Clock3, value: 'Review events' }, { label: 'Investigation findings', to: `/case/${id}/findings`, icon: ClipboardList, value: `${currentCase.findings?.length || 0} findings` }];
+  return <div className="mx-auto max-w-[1200px]"><div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><div className="mb-3 flex items-center gap-3"><span className="font-mono text-xs text-blue-300">{currentCase.id}</span><span className="border border-emerald-400/30 px-2 py-0.5 text-[10px] uppercase tracking-widest text-emerald-300">{currentCase.status}</span></div><h1 className="text-3xl font-semibold tracking-tight text-white">{currentCase.name}</h1></div><Link to={`/case/${id}/report`} className="flex items-center gap-2 border border-[#33404f] px-3 py-2 text-sm text-neutral-300 hover:border-blue-400/60 hover:text-white">Open report <ArrowUpRight size={15} /></Link></div>
+    <div className="grid gap-8 lg:grid-cols-[1.4fr_0.8fr]"><div><section className="border-y border-[#26303b] py-5"><div className="flex items-center gap-2"><Target size={17} className="text-blue-300" /><h2 className="text-sm font-medium text-white">Investigation objective</h2></div><p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-neutral-400">{currentCase.objective}</p></section>{currentCase.notes && <section className="border-b border-[#26303b] py-5"><h2 className="text-sm font-medium text-white">Case notes</h2><p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-neutral-500">{currentCase.notes}</p></section>}<section className="mt-8"><h2 className="text-sm font-medium text-white">Investigation surfaces</h2><div className="mt-3 divide-y divide-[#26303b] border-y border-[#26303b]">{links.map(item => <Link key={item.label} to={item.to} className="group flex items-center justify-between py-4"><div className="flex items-center gap-3"><item.icon size={16} className="text-blue-300" /><span className="text-sm text-neutral-300 group-hover:text-white">{item.label}</span></div><span className="flex items-center gap-2 text-xs text-neutral-500">{item.value}<ArrowUpRight size={14} className="group-hover:text-blue-300" /></span></Link>)}</div></section></div>
+      <aside className="border border-[#26303b] bg-[#11161d] p-5"><p className="font-mono text-[10px] uppercase tracking-widest text-neutral-500">Case metadata</p><div className="mt-5 space-y-5">{[[User, 'Investigator', currentCase.investigator], [Calendar, 'Created', new Date(currentCase.createdAt).toLocaleString()], [FileText, 'Findings', String(currentCase.findings?.length || 0)], [Database, 'Indexed artifacts', String(artifacts)]].map(([Icon, label, value]) => <div key={String(label)} className="flex gap-3"><Icon size={16} className="mt-0.5 text-neutral-500" /><div><p className="font-mono text-[10px] uppercase tracking-widest text-neutral-600">{String(label)}</p><p className="mt-1 text-sm text-neutral-200">{String(value)}</p></div></div>)}</div></aside></div>
+  </div>;
 };

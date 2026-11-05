@@ -1,141 +1,14 @@
 import React, { useCallback, useState } from 'react';
 import Papa from 'papaparse';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, FileJson, FileSpreadsheet, LoaderCircle } from 'lucide-react';
 import { useCaseStore } from '../store/caseStore';
 import { calculateFileHash } from '../engine/hashing';
 import { sanitizeEvidenceData } from '../utils/sanitize';
 import type { Artifact } from '../types';
 
-interface EvidenceUploaderProps {
-  caseId: string;
-}
-
-export const EvidenceUploader: React.FC<EvidenceUploaderProps> = ({ caseId }) => {
-  const { addEvidence } = useCaseStore();
-  const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const processFile = useCallback(async (file: File) => {
-    setIsProcessing(true);
-    try {
-      const hashes = await calculateFileHash(file);
-      
-      let parsedArtifacts: Artifact[] = [];
-      const extension = file.name.split('.').pop()?.toLowerCase() || '';
-
-      // Try to find common timestamp fields
-      const getTimestamp = (row: any) => {
-        const timeKeys = ['timestamp', 'Time', 'time', 'date', 'Date', '@timestamp'];
-        for (const key of timeKeys) {
-          if (row[key] !== undefined && row[key] !== null) return String(row[key]);
-        }
-        return undefined;
-      };
-
-      // Try to find common event type fields
-      const getType = (row: any) => {
-        const typeKeys = ['type', 'Type', 'Event', 'event', 'action', 'Action'];
-        for (const key of typeKeys) {
-          if (row[key] !== undefined && row[key] !== null) return String(row[key]);
-        }
-        return 'Log';
-      };
-
-      if (extension === 'csv') {
-        const text = await file.text();
-        const results = Papa.parse(text, { header: true, skipEmptyLines: true });
-        parsedArtifacts = results.data.map((row: any) => {
-          const sanitizedData = sanitizeEvidenceData(row);
-          return {
-            id: '', // Will be assigned by store
-            evidenceId: '',
-            timestamp: getTimestamp(sanitizedData),
-            type: getType(sanitizedData),
-            data: sanitizedData,
-            isRelevant: false,
-            notes: ''
-          };
-        });
-      } else if (extension === 'json') {
-        const text = await file.text();
-        const results = JSON.parse(text);
-        const dataArray = Array.isArray(results) ? results : [results];
-        parsedArtifacts = dataArray.map((row: any) => {
-          const sanitizedData = sanitizeEvidenceData(row);
-          return {
-            id: '',
-            evidenceId: '',
-            timestamp: getTimestamp(sanitizedData),
-            type: getType(sanitizedData),
-            data: sanitizedData,
-            isRelevant: false,
-            notes: ''
-          };
-        });
-      } else {
-        alert('Only CSV and JSON files are supported for now.');
-        setIsProcessing(false);
-        return;
-      }
-
-      addEvidence(caseId, {
-        name: file.name,
-        type: extension.toUpperCase(),
-        hash: hashes.sha256,
-        md5: hashes.md5,
-        size: file.size,
-        artifacts: parsedArtifacts,
-        notes: ''
-      });
-    } catch (err) {
-      console.error(err);
-      alert('Error processing file');
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [addEvidence, caseId]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      processFile(file);
-    }
-  }, [processFile]);
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      processFile(e.target.files[0]);
-    }
-  };
-
-  return (
-    <div
-      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-      onDragLeave={() => setIsDragging(false)}
-      onDrop={handleDrop}
-      className={`border-2 border-dashed rounded-lg p-10 flex flex-col items-center justify-center transition-colors ${
-        isDragging ? 'border-blue-500 bg-blue-500/10' : 'border-neutral-800 bg-neutral-900'
-      }`}
-    >
-      <UploadCloud className={`w-12 h-12 mb-4 ${isDragging ? 'text-blue-400' : 'text-neutral-500'}`} />
-      <h3 className="text-lg font-medium text-white mb-2">
-        {isProcessing ? 'Processing Evidence...' : 'Import Evidence'}
-      </h3>
-      <p className="text-sm text-neutral-400 text-center mb-6 max-w-sm">
-        Drag and drop CSV or JSON datasets here, or click to browse. Files are processed locally.
-      </p>
-      <label className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium cursor-pointer transition-colors shadow-sm">
-        Browse Files
-        <input 
-          type="file" 
-          className="hidden" 
-          accept=".csv,.json" 
-          onChange={handleFileInput}
-          disabled={isProcessing}
-        />
-      </label>
-    </div>
-  );
+export const EvidenceUploader: React.FC<{ caseId: string }> = ({ caseId }) => {
+  const { addEvidence } = useCaseStore(); const [isDragging, setIsDragging] = useState(false); const [isProcessing, setIsProcessing] = useState(false);
+  const processFile = useCallback(async (file: File) => { setIsProcessing(true); try { const hashes = await calculateFileHash(file); const extension = file.name.split('.').pop()?.toLowerCase() || ''; let rows: any[] = []; if (extension === 'csv') { const result = Papa.parse(await file.text(), { header: true, skipEmptyLines: true }); rows = result.data as any[]; } else if (extension === 'json') { const parsed = JSON.parse(await file.text()); rows = Array.isArray(parsed) ? parsed : [parsed]; } else { alert('Only CSV and JSON files are supported.'); return; } const artifacts: Artifact[] = rows.map(row => { const data = sanitizeEvidenceData(row); const timestamp = ['timestamp', 'Time', 'time', 'date', 'Date', '@timestamp'].find(k => data[k] != null); const type = ['type', 'Type', 'Event', 'event', 'action', 'Action'].find(k => data[k] != null); return { id: '', evidenceId: '', timestamp: timestamp ? String(data[timestamp]) : undefined, type: type ? String(data[type]) : 'Log', data, isRelevant: false, notes: '' }; }); addEvidence(caseId, { name: file.name, type: extension.toUpperCase(), hash: hashes.sha256, md5: hashes.md5, size: file.size, artifacts, notes: '' }); } catch (error) { console.error(error); alert('Unable to process this evidence file.'); } finally { setIsProcessing(false); } }, [addEvidence, caseId]);
+  const onDrop = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); };
+  return <div onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={onDrop} className={`border border-dashed p-8 text-center transition-colors ${isDragging ? 'border-blue-300 bg-blue-400/10' : 'border-[#33404f] bg-[#0f141a]'}`}><div className="mx-auto flex h-12 w-12 items-center justify-center border border-blue-400/30 bg-blue-400/10 text-blue-300">{isProcessing ? <LoaderCircle className="animate-spin" size={22} /> : <UploadCloud size={22} />}</div><h2 className="mt-5 text-lg font-medium text-white">{isProcessing ? 'Indexing evidence…' : 'Import evidence source'}</h2><p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-neutral-500">Files remain local to this workstation. CSV and JSON rows are sanitized, hashed, and indexed as artifacts.</p><div className="mt-5 flex justify-center gap-4 font-mono text-[10px] uppercase tracking-widest text-neutral-600"><span className="flex items-center gap-1"><FileSpreadsheet size={13} />CSV</span><span className="flex items-center gap-1"><FileJson size={13} />JSON</span></div><label className="mt-6 inline-flex cursor-pointer bg-blue-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-blue-400">{isProcessing ? 'Processing' : 'Choose file'}<input type="file" accept=".csv,.json" className="hidden" onChange={e => e.target.files?.[0] && processFile(e.target.files[0])} disabled={isProcessing} /></label></div>;
 };

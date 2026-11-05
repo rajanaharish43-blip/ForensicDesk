@@ -161,29 +161,29 @@ export const Report: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="mx-auto flex h-[calc(100vh-120px)] min-h-[560px] max-w-[1200px] flex-col">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white tracking-tight">Final Investigation Report</h2>
-        <p className="text-neutral-400 mt-1">Export case findings, timeline, and artifacts.</p>
+        <p className="font-mono text-xs uppercase tracking-[0.22em] text-blue-300">Case documentation</p>
+        <h2 className="mt-2 text-2xl font-semibold text-white tracking-tight">Investigation report</h2>
+        <p className="mt-2 text-sm text-neutral-500">Review the evidence record and export a defensible technical report.</p>
       </div>
 
-      <div className="flex-1 max-w-4xl w-full bg-neutral-900 border border-neutral-800 rounded-lg p-8 space-y-8 overflow-y-auto">
+      <div className="fd-scrollbar flex-1 w-full bg-[#11161d] border border-[#26303b] p-5 sm:p-8 space-y-8 overflow-y-auto">
         <div className="flex justify-between items-start border-b border-neutral-800 pb-6">
             <div>
-                <h3 className="text-3xl font-serif text-white mb-2">FORENSIC INVESTIGATION REPORT</h3>
-                <p className="text-neutral-400">{currentCase.id} - {currentCase.name}</p>
+                <div><p className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue-300">ForensicDesk / technical record</p><h3 className="mt-2 text-2xl font-semibold text-white mb-2">Investigation report</h3><p className="font-mono text-xs text-neutral-500">{currentCase.id} · {currentCase.name}</p></div>
             </div>
             <div className="flex gap-4">
                 <button
                     onClick={handleExportJSON}
-                    className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-md transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 border border-[#33404f] text-neutral-200 transition-colors hover:border-blue-400/60"
                 >
                     <FileJson className="w-4 h-4" />
                     Export JSON
                 </button>
                 <button
                     onClick={handleExportPDF}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors font-medium shadow-lg"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-400 text-slate-950 transition-colors font-medium shadow-lg"
                 >
                     <Download className="w-4 h-4" />
                     Download PDF

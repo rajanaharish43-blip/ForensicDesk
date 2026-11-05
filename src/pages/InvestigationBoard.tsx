@@ -90,24 +90,25 @@ export const InvestigationBoard: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] relative">
+    <div className="flex flex-col h-[calc(100vh-120px)] min-h-[560px] relative">
       <div className="flex items-center justify-between mb-4 z-10 absolute top-0 left-0 w-full p-4 pointer-events-none">
-        <div className="pointer-events-auto bg-neutral-900/80 backdrop-blur-sm p-3 rounded-lg border border-neutral-800">
-          <h2 className="text-xl font-bold text-white tracking-tight">Investigation Board</h2>
-          <p className="text-xs text-neutral-400">Map relationships and attack paths.</p>
+        <div className="pointer-events-auto bg-[#11161d]/95 p-3 border border-[#33404f]">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-blue-300">Relationship analysis</p>
+          <h2 className="mt-1 text-xl font-semibold text-white tracking-tight">Investigation board</h2>
+          <p className="text-xs text-neutral-500">Map entities, evidence, and attack paths.</p>
         </div>
         
         <div className="relative pointer-events-auto">
           <button
             onClick={() => setShowAddMenu(!showAddMenu)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors shadow-lg"
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-slate-950 px-4 py-2 font-medium transition-colors shadow-lg"
           >
             <Plus className="w-4 h-4" />
             Add Entity
           </button>
           
           {showAddMenu && (
-            <div className="absolute top-12 right-0 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl w-48 overflow-hidden z-50">
+            <div className="absolute top-12 right-0 bg-[#11161d] border border-[#33404f] shadow-xl w-48 overflow-hidden z-50">
               {(['IP', 'User', 'Process', 'File', 'Domain', 'Event'] as const).map(type => (
                 <button
                   key={type}
@@ -122,7 +123,7 @@ export const InvestigationBoard: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden relative">
+      <div className="flex-1 bg-[#0a0d11] border border-[#26303b] overflow-hidden relative">
         <ReactFlow
           nodes={nodes}
           edges={edges}

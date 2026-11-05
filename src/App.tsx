@@ -6,6 +6,7 @@ import { EvidenceWorkspace } from './pages/EvidenceWorkspace';
 import { Timeline } from './pages/Timeline';
 import { InvestigationBoard } from './pages/InvestigationBoard';
 import { Report } from './pages/Report';
+import { Findings } from './pages/Findings';
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
           <Route path="case/:id/evidence" element={<EvidenceWorkspace />} />
           <Route path="case/:id/timeline" element={<Timeline />} />
           <Route path="case/:id/board" element={<InvestigationBoard />} />
-          <Route path="case/:id/findings" element={<div className="p-8 text-neutral-500">Findings Module (Phase 8)</div>} />
+          <Route path="case/:id/findings" element={<Findings />} />
           <Route path="case/:id/report" element={<Report />} />
         </Route>
       </Routes>

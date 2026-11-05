@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import localforage from 'localforage';
-import type { Case, Evidence, Artifact } from '../types';
+import type { Case, Evidence, Artifact, Finding } from '../types';
 
 interface CaseState {
   cases: Case[];
@@ -13,6 +13,9 @@ interface CaseState {
   updateEvidenceNotes: (caseId: string, evidenceId: string, notes: string) => void;
   deleteEvidence: (caseId: string, evidenceId: string) => void;
   updateArtifact: (caseId: string, evidenceId: string, artifactId: string, updates: Partial<Artifact>) => void;
+  addFinding: (caseId: string, finding: Omit<Finding, 'id' | 'createdAt'>) => void;
+  updateFinding: (caseId: string, findingId: string, updates: Partial<Finding>) => void;
+  deleteFinding: (caseId: string, findingId: string) => void;
   updateBoard: (caseId: string, nodes: any[], edges: any[]) => void;
 }
 
@@ -109,6 +112,28 @@ export const useCaseStore = create<CaseState>()(
           }
           return c;
         })
+      })),
+      addFinding: (caseId, findingData) => set((state) => ({
+        cases: state.cases.map(c => c.id === caseId ? {
+          ...c,
+          findings: [...(c.findings || []), {
+            ...findingData,
+            id: `F-${String((c.findings || []).length + 1).padStart(3, '0')}`,
+            createdAt: new Date().toISOString(),
+          }]
+        } : c)
+      })),
+      updateFinding: (caseId, findingId, updates) => set((state) => ({
+        cases: state.cases.map(c => c.id === caseId ? {
+          ...c,
+          findings: (c.findings || []).map(f => f.id === findingId ? { ...f, ...updates } : f)
+        } : c)
+      })),
+      deleteFinding: (caseId, findingId) => set((state) => ({
+        cases: state.cases.map(c => c.id === caseId ? {
+          ...c,
+          findings: (c.findings || []).filter(f => f.id !== findingId)
+        } : c)
       })),
       updateBoard: (caseId, nodes, edges) => set((state) => ({
         cases: state.cases.map(c => c.id === caseId ? { ...c, board: { nodes, edges } } : c)

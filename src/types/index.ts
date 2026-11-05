@@ -30,6 +30,8 @@ export interface Finding {
   observation: string;
   confidence: string;
   notes: string;
+  status?: 'Draft' | 'Confirmed' | 'Dismissed';
+  createdAt?: string;
 }
 
 export interface Artifact {
